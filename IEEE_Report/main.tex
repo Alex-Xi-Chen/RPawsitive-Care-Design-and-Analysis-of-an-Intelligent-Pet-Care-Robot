@@ -1,0 +1,308 @@
+\documentclass[conference,letterpaper]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{booktabs,tabularx}
+\usepackage{microtype}
+\usepackage{cite,url,balance}
+\begin{document}
+\title{RPawsitive Care: Design and Analysis of an Intelligent Pet-Care Robot}
+\author{\IEEEauthorblockN{XI CHEN}
+\IEEEauthorblockA{University of Toronto\\
+xialex.chen@mail.utoronto.ca}}
+\maketitle
+\begin{abstract}
+
+Companion animals are part of a large and growing share of households, yet the daily labour of caring for them — feeding, walking, cleaning, play, training, and watching for early signs of illness — collides with the realities of full-time work, limited mobility, and aging. This project proposes RPawsitive Care (a “RoboZoo” platform), a coordinated robotic system that autonomously performs core pet-care tasks while a human is away or unable to provide care. The system combines a mobile manipulator base, perception for animal detection and behaviour recognition, and behaviour-based control to feed pets, clean litter, dispense water, engage animals in play, support basic training and dog walking, and flag candidate health concerns for veterinary follow-up. We frame the need across four user groups — working owners, people with disabilities, older adults, and (in an extended “farm” configuration) smallholders managing livestock — and develop the system’s intended behaviours, an analysis of the robot as an intelligent agent (PEAS and environment classification), a feasibility assessment, and a roboethics discussion.
+
+\end{abstract}
+
+\begin{IEEEkeywords}assistive robotics, pet care, mobile manipulation, behaviour-based control, animal welfare\end{IEEEkeywords}
+
+\section{Introduction}
+
+Companion animals create recurring responsibilities for feeding, exercise, hygiene, and social interaction. Research on human--animal interaction identifies potential benefits for social engagement and stress reduction, although outcomes vary across people and settings and observational associations do not establish causation~\cite{beetz}. Maintaining these relationships requires consistent daily care. This report examines how a mobile robotic assistant could support owners who face time constraints or physical barriers to providing that care.
+
+Existing pet-care appliances typically specialize in functions such as feeding or litter cleaning. Companion robots address a different need: Sony presents aibo as an entertainment robot for interaction with household members~\cite{sony}. Mobile manipulation research also provides relevant foundations; Toyota's Human Support Robot combines a mobile base and an arm for domestic assistance~\cite{toyota}. These examples motivate the proposed integration of mobility, manipulation, animal-aware perception, and monitoring in RPawsitive Care. They do not establish that an integrated robot can already perform all proposed pet-care tasks safely.
+
+\subsection{Motivation/Problem Statement}
+
+Companion-animal care is time-sensitive and recurring: dogs require multiple walks and feedings, cats need litter cleaned and fresh water, and many animals need interaction and enrichment to remain healthy. These demands collide with the realities of full-time and shift work, travel, and unpredictable schedules. The difficulty is amplified for people with mobility, visual, or other disabilities, who may find tasks such as walking a dog, lifting a litter box, or refilling heavy food and water containers physically taxing or impossible. Some older adults may value animal companionship while finding it difficult to sustain the associated physical labour, a tension that can force the painful surrender of a beloved pet during exactly the life stage when its companionship matters most. Beyond logistics, owners are rarely equipped to detect the early, subtle signs of illness in animals that instinctively mask discomfort, so health problems are frequently noticed only once they have become serious.
+
+\subsection{Project Objectives}
+
+RPawsitive Care is conceived not as a single appliance but as a mobile, perception-driven caretaker that can locate an animal, deliver food and water, clean a litter area, initiate play and light training, walk a dog, and continuously watch for behavioural and physical indicators of poor health, escalating anything concerning to the owner or a veterinarian. The core system is scoped around indoor companion animals (cats and dogs), with an extended configuration sketched for small-scale farm animals such as sheep, goats, or horses. Tasks are treated as a spectrum of difficulty: feeding, watering, and litter cleaning are tractable near-term targets, whereas reliable dog-walking with waste collection is treated as a longer-term research objective. Autonomous diagnosis, vaccination, and medication selection are outside the proposed system scope.
+
+Accordingly, this report (1) defines the target users and required behaviours; (2) presents the robot’s behaviour-based control architecture and core behaviours; (3) analyzes the robot as an intelligent agent through agent characteristics, a PEAS specification, and a task-environment classification; (4) assesses technical and economic feasibility; and (5) examines the Roboethics of delegating the care of a living, dependent animal to an autonomous system.
+
+\subsection{Target Users}
+
+RPawsitive Care is designed for four overlapping groups. Working owners who are away from home for long hours need reliable feeding, cleaning, and exercise for their pets during the day. People with disabilities may be unable to perform physically demanding care tasks independently and benefit from an assistive system that augments their abilities. Older adults gain the well-documented companionship benefits of pet ownership while offloading the physical labour that might otherwise make keeping a pet untenable. Finally, an extended configuration targets smallholders and hobby farmers managing livestock such as sheep, goats, or horses, where feeding and health-monitoring tasks recur at larger scale and the economic case for automation is strongest.
+
+\section{Robot Behaviors}
+
+The primary task of the robot is to assist pet owners in performing daily pet care activities while ensuring pet health, safety, and comfort. The robot should be able to provide food, monitor health conditions, support exercise and interaction, maintain a clean environment, and respond appropriately to dynamic situations.
+
+The robot has a Behavior-Based Design approach. In behavior-based robotics, a behavior can be viewed as a mapping between sensory inputs and motor actions that enables a robot to complete the specific task. Rather than relying on planning everything ahead of time, behavior-based systems focus on interaction with the environment and responses to changing situations. This decomposition is informed by layered behaviour-based control~\cite{brooks}; the proposed robot reacts to environmental conditions and task requirements when they occur.
+
+This approach is a good option because the potential working environments are dynamic, and pets often behave unpredictably. Therefore, the robot must be able to respond quickly and make good decisions. The proposed system uses a situated activity-based design approach. In this methodology, the robot's actions are determined by the situation it is currently in. Rather than following a planned action list, the robot first recognizes the current situation and then selects the most appropriate action to complete the tasks.
+
+For example, when it is feeding time, the Feeding Behavior becomes active; if the robot detects that a pet needs exercise, the Dog Walking Behavior is selected; when abnormal activity or health concerns are observed, the Health Monitoring Behavior takes priority; and if an obstacle is encountered, the Obstacle Avoidance Behavior is immediately triggered. As situations change, the robot continuously switches between behaviors. Overall, the robot operates as a situated agent, where its actions affect pets and surroundings.
+
+To manage the complexity of robot behavior, the overall task is decomposed into several smaller behaviors. Rather than designing one single complex behavior, the system separates it into individual behaviors such as feeding, playing, dog walking, cleaning, health monitoring, navigation, and pet localization. Each behavior is responsible for a specific job and together combined to the overall system objective. This structure improves flexibility, scalability, maintainability, and future system expansion.
+
+The proposed system assumes a mobile service robot operating in residential environments to support daily pet-care activities. The robot is equipped with cameras, microphones, proximity sensors, environmental sensors, wireless communication modules, and basic manipulation capabilities. These sensing and actuation capabilities provide the foundation for implementing the proposed behaviors.
+
+The robot operates primarily in indoor living spaces and outdoor areas such as backyards, parks, and neighborhood sidewalks. The environment may contain furniture, doors, toys, food bowls, litter boxes, people, and other pets. In addition, lighting conditions, weather conditions, and pet locations may change continuously, creating a dynamic and partially unpredictable operating environment. As a result, the robot must be capable of perceiving environmental changes and responding appropriately through a set of adaptive behaviors.
+
+\subsection{Core Pet Care Behaviors}
+
+The overall objective of the robot is to support daily pet-care activities. The following behaviours represent the core functionality of the proposed system.
+
+\subsubsection{Feeding Behavior}
+
+The feeding behaviour identifies the intended pet, checks the owner-configured schedule and portion limit, and dispenses food into an accessible bowl. A load sensor verifies the delivered mass and records the event. If pet identity is uncertain, the bowl is obstructed, or the dispenser jams, the robot pauses and requests assistance. Feeding plans should follow the individual animal's owner- and veterinarian-approved requirements; the robot does not independently prescribe a diet. Multi-pet operation requires identity checks to reduce the risk of one animal receiving another animal's portion.
+
+\subsubsection{Water Provision Behavior}
+
+Water provision uses bowl-level or weight measurements to detect when replenishment is needed. Before dispensing, the robot verifies the bowl location, checks reservoir availability, and confirms that no animal is in the manipulator's working space. A bounded dispensing cycle and a spill detector limit overflow. The robot records low-water and refill events and alerts the owner if replenishment fails. Water replacement and container cleaning remain scheduled maintenance tasks.
+
+\subsubsection{Play and Companionship Behavior}
+
+All pets need regular interaction to reduce their anxiety. The robot can serve as an interactive companion, offering play through movement, sound, or lights to relieve their anxiety and also distract their focus from damaging the properties. Regular interactive play such as chasing a laser dot or pushing a toy ball which is especially valuable for pets left alone during the day. The robot should also be able to determine whether pets need to play or need to rest. From a behavioral design perspective, this can be categorized to goal-directed appetitive behavior, where the robot detects the pet and actively approaches to initiate interaction.
+
+\subsubsection{Dog Walking Behavior}
+
+The walking behavior can be a big help for owners who work onsite every day and leave their dogs home for ten hours or more. Walking and bathroom schedules must be tailored to the individual animal, with owner and veterinary input as appropriate. So the robot should be able to let owners set several times and routes ahead of time, including road conditions like stop signs, crosswalks, and school zones, and other special items. The proposed design combines route planning with local obstacle avoidance. For the robot design, it needs enough strength and control to handle different dog sizes and sudden pulls. While walking, it should be able to navigate around people and other small dogs on its own, and adjust the route based on the weather, for example, avoiding hot pavement or heavy rain. The robot can also detect when the dog poops using a camera, pause the walk, pick up the waste with a small arm or scooper, seal it, and then keep going. Regular walks support joint health, heart and lung function, weight control, and regular bathroom breaks. They also burn off extra energy, which reduces chewing, barking, and other problem behaviors. In terms of behavior design, this is basically path following, the robot acts as a moving target for the dog to follow, while also avoiding obstacles along the way.
+
+\subsubsection{Cleaning Behavior}
+
+Maintaining a clean-living environment is important for pets. Using cats as an example, the litter cleaning behavior focuses on cleaning pet waste, reducing unpleasant odors, and improving overall comfort for both pets and owners. All pets will require some cleaning; for example, dogs will require fur and mite control. By automating this task, the robot improves housing conditions, the pet's living conditions, and pet health. The behavior can be designed using a sense-act pattern, employing sensors such as odor detectors, cameras, or weight sensors to determine when cleaning is needed, and responding by some cleaning mechanism, such as a small scoop or vacuum.
+
+\subsubsection{Health Monitoring Behavior}
+
+Health monitoring records activity, feeding events, and visible or audible changes for owner review. The first prototype would prioritize reliably measurable quantities such as bowl mass and time spent moving or resting. Heart rate, respiratory rate, and temperature estimation are optional research functions whose accuracy must be established against suitable reference instruments before use. A sustained departure from an animal's baseline triggers an advisory alert containing the observations and their uncertainty. The robot must not infer a diagnosis or initiate medication; owners and veterinarians decide what action is appropriate.
+
+\subsection{Behaviour Schemas}
+
+Table~\ref{tab:behaviors} summarizes the perceptual inputs and motor responses of the proposed behaviours.
+
+\begin{table}[!htbp]\caption{Behavior perceptual and motor schemas}\label{tab:behaviors}\centering\footnotesize\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\columnwidth}{@{}p{0.23\columnwidth}XX@{}}\toprule
+Behaviour & Perceptual Schema & Motor Schema \\\midrule
+Feeding & Feeding schedule, pet presence & Dispense food \\
+Water Provision & Bowl level, reservoir status & Refill bowl \\
+Play & Pet activity level & Move, play, interact \\
+Dog Walking & Route, dog position & Navigate, lead dog \\
+Cleaning & Waste detection & Vacuum, scoop \\
+Health Monitoring & Activity, vital signs & Alert owner \\
+Navigation & Goal location & Move to target \\
+Obstacle Avoidance & Obstacle detection & Stop, avoid \\
+Pet Localization & Pet position & Orient toward pet \\
+\bottomrule\end{tabularx}\end{table}
+
+\subsection{Behaviour Arbitration and Fault Recovery}
+
+The proposed controller evaluates behaviour activation conditions continuously. Emergency stops, collision risk, and detected animal distress interrupt all routine tasks. Battery protection and fault recovery follow, while feeding, water provision, and cleaning take priority over optional play. A task scheduler resolves competing routine requests using deadlines and resource availability. Each behaviour has explicit preconditions, a completion test, a timeout, and a recovery action. For example, feeding requires an identified pet and a verified bowl; unsuccessful dispensing causes a stop and an owner notification rather than repeated unbounded dispensing.
+
+Only one behaviour may command a shared actuator at a time. Navigation pauses during close manipulation, and cleaning is inhibited when an animal occupies the cleaning area. Following an interruption, the controller checks current sensor observations before resuming. A local safety controller remains active if the application or network connection fails. These are proposed control requirements, not demonstrated performance results.
+
+\section{Intelligent Robot Design}
+
+\subsection{Definition of Intelligent Robot}
+
+An intelligent robot is defined as a machine system that can sense the surrounding environment, make judgments, and take actions by itself to complete tasks. Unlike common automated devices, which mostly perform pre-planned tasks, an intelligent robot integrates perception, control, and AI technologies that enable it to work in an uncertain environment and to learn and become more efficient.
+
+\subsection{Mechanical Components Design}
+
+\subsubsection{Mobility System}
+
+The mobility system provides the robot with the ability to operate safely and efficiently in both indoor and outdoor environments. A hybrid wheel leg design will be used to provide the ability to handle different terrains. Legs and human-like articulated joints will be used when the robot walks on stairs and steps. Wheels will be used for other terrains, including flat surfaces, grass, gravel, and dirt paths. High torque motors will provide enough power for the robot to walk large dogs and carry heavy supplies. A braking system is also necessary for the robot to smoothly decelerate and stop during navigation. In addition, an emergency braking system will also be included, allowing the robot to stop immediately when an emergency is detected.
+
+\subsubsection{Lifting and Storage System}
+
+Lifting and storage will enable the robot to carry and transport items. A lifting mechanism will be used to lift up and lower supplies, which will provide sufficient power to support the lifting and moving function. A storage box will also be included for storing treats, water, and other pet supplies; a separate container will be used to store waste.
+
+\subsubsection{Waste Collection System}
+
+The waste collection enables the robot to pick up and contain dog waste in a poop bag during outdoor activity. A shovel-boom concept will be used to pick up waste from the ground. A small high-pressure water gun will also be included in case of soft or loose stool. This design is also considered hygienic and clean, to reduce contact and contamination.
+
+\subsubsection{Robotic Arm System}
+
+The robot arm system includes a multi-joint design so that it has more flexible movement to reach as many areas as possible. It supports most daily tasks, for example, grabbing and moving items, feeding pets, interacting with pets, and opening/closing doors.
+
+\subsection{Electrical Components Design}
+
+\subsubsection{Sensor System}
+
+The sensor system will work together to collect information for the robot for a specific task. The ultrasonic sensor can be used to detect obstacles and the distance for the robot to avoid collisions. Infrared sensors and a camera will work together to detect short range objects. While walking the dog, the force sensor will detect leash tension and pulling force to ensure safe operation. A GPS module will support outdoor navigation and location tracking. The accelerometer and gyroscope will be used to check the robot’s balance and movement to improve static and dynamic stability.
+
+\subsubsection{Vision System}
+
+Multiple cameras will be used for the robot’s vision system. The cameras will work together to achieve 360 degree environmental awareness. The vision system will also integrate cameras and sensors for fully automatic dog walking. This remains a proposed capability requiring validation in animal-care settings. The camera setup supports pet monitoring and activity recording, allowing the robot to track the dog’s behavior continuously, and the owner can monitor the pet and the robot’s behavior live. The robot can also recognize the pet’s behavior based on the data received from the cameras, so that it can analyze the pet’s actions, take action quickly, and use the data for future learning.
+
+\subsubsection{Human-Machine Interface (HMI)}
+
+The HMI should be a big touchscreen that allows users to interact with and set up the robot. It will also include basic information about the robot, for example, battery level, task status, pet status, and robot status. This feature helps owners easily control and communicate with the robot.
+
+\subsubsection{Lighting System}
+
+The lighting system includes two kinds. The first is auxiliary illumination that supports night operation, which helps pets, owners, and others see. The second is indicator lights, which will indicate the robot's status, such as autonomous mode or a function error.
+
+\subsubsection{Audio System}
+
+The audio system is equipped with a speaker so that the robot can provide different types of information. It can provide system guides so that the owner can update or operate the robot when needed. It can also send emergency alarms so that everyone nearby can be aware. In addition, it can use different sounds to interact with pets during activities.
+
+\subsubsection{Power Management System}
+
+The power management system includes a rechargeable battery pack that provides energy, and all battery status will be monitored. Inspired by the Ultium battery from electric vehicles, the system includes a reserved energy buffer to prevent full drainage and extend battery life. A solar panel can also be applied to the robot to extend working hours or provide emergency power. Emergency power management handles low-battery situations by triggering a safe return or alerting the owner.
+
+\subsection{Intelligent Design}
+
+\subsubsection{Environmental Awareness}
+
+The robot should have the ability to detect and recognize different objects during daily tasks. It should be able to identify target objects, obstacles, different terrains, humans, and pets. The robot should also be able to predict and monitor weather conditions. By using weather forecasts, it can determine whether outdoor activities are appropriate. Wind and rain sensors can provide real time environmental data so that the robot can decide whether an outdoor activity should be terminated. Ideally, the robot should also can record new objects in its memory, learn from experience, and develop the most efficient and safe methods to complete tasks.
+
+\subsubsection{Autonomous Navigation}
+
+Navigation is one of the most advanced features of this robot. To be able to walk the dog and perform other outdoor activities, the robot needs to plan and follow the best path. The owner can set up a preferred route, and the robot can optimize navigation along that route without significantly changing it while adapting to unpredictable situations. The navigation system combines map-based planning with reactive obstacle avoidance. Pedestrian paths, stop signs, traffic lights, and intersections will be recorded in the map. Based on the predefined route, the robot can perform autonomous navigation using this information. The robot will also prioritize tasks accordingly, such as terminating outdoor activities when bad weather, pet health issues, or other major events occur.
+
+\subsubsection{Pet Behaviour Recognition}
+
+Pet behaviour recognition is another learning capability the robot will have. Similar to children, different pets have different characteristics and behavioural patterns. The robot will collect daily data and learn each pet’s normal activity levels and habits. This information can then be used to monitor behaviour and identify abnormalities. Validated physiological measurements could later supplement these activity records. Behavioural changes would be reported as observations for owner and veterinary review; the system would not determine their medical cause.
+
+\subsubsection{User Communication and Monitoring}
+
+A mobile app will be connected to the robot for owner monitoring and management. It should support notifications and remote control functions. Smart home integration is also an important feature. The robot can connect with other smart home devices, such as cameras, lights, feeding bowls, and door locks. It will also support voice activation, allowing owners to give commands through speech. In addition, the app should include LLM support such as ChatGPT, enabling owners to communicate with the robot, search for information, and send text-based instructions. Some specific commands (limited due to ethical considerations) can also be issued through the app.
+
+\section{Intelligent Robot Analysis}
+
+This section analyzes RPawsitive Care as an intelligent agent. We first identify the agent characteristics it must exhibit, then specify its task through a PEAS description, classify the properties of its operating environment, and finally outline the human–robot interaction model and the artificial-intelligence techniques that realize its behaviours.
+
+\subsection{Agent Characteristics}
+
+An intelligent agent perceives its environment through sensors and acts upon it through actuators to maximize a performance measure~\cite{aima}. RPawsitive Care exhibits the defining characteristics of such an agent. It is situated and embodied: it occupies the same physical home as the pet and acts on real food, water, waste, and animals rather than on an abstract symbol space. It is autonomous, carrying out feeding, cleaning, and monitoring without continuous human supervision while the owner is away. It is reactive, responding within tight time bounds to events such as a pet approaching, an obstacle appearing, or a litter box becoming soiled. It is proactive and goal-directed, initiating play, scheduling walks, and pursuing longer-horizon objectives such as maintaining a feeding routine and a healthy activity level. It is adaptive, adjusting feeding plans, walking routes, and interaction style to an individual animal and to changing conditions such as weather or a pet’s health state. Finally, it is necessarily social, interacting with both the animals it cares for and the humans who own them, which makes safe and legible interaction a first-class design concern.
+
+\subsection{PEAS Analysis}
+
+The PEAS framework specifies an agent’s task environment in terms of its Performance measure, Environment, Actuators, and Sensors~\cite{aima}. The table below summarizes the PEAS description for RPawsitive Care.
+
+\begin{table}[!htbp]\caption{PEAS specification for RPawsitive Care}\label{tab:peas}\centering\footnotesize\renewcommand{\arraystretch}{1.15}\begin{tabularx}{\columnwidth}{@{}p{0.23\columnwidth}X@{}}\toprule Component & Description \\\midrule
+Performance measure & Pet health and wellbeing (correct food portions and timing, hydration, cleanliness, adequate exercise, early detection of illness); safety of pet, humans, and property; task-completion rate and reliability; owner satisfaction and trust; energy and time efficiency. \\
+Environment & The home (rooms, furniture, stairs, feeding and water stations, litter area) and outdoor walking routes; the pet(s) being cared for; the owner and other humans; other animals encountered indoors or on walks; and connected smart-home/IoT devices. \\
+Actuators & Mobile base (wheels or legs) for navigation; manipulator arm with gripper/scooper for waste handling and object manipulation; food and water dispensers; vacuum/cleaning mechanism; leash or following mechanism for walks; speaker and display for interaction; owner notification interface. \\
+Sensors & RGB-D and outdoor cameras for vision; microphones for sound and vital-sign cues; LiDAR/ultrasonic/proximity sensors for navigation and obstacle avoidance; weight and load sensors (food bowls, litter); odour/gas sensors; thermal and temperature sensors; IMU and wheel encoders; GPS for outdoor localization. \\
+\bottomrule\end{tabularx}\end{table}
+
+\subsection{Environment Classification}
+
+Using the standard task-environment dimensions, the operating environment of RPawsitive Care is best characterized as follows. It is partially observable: the robot cannot sense the entire home at once, pets move out of view, and internal animal states such as pain or nausea are only indirectly observable. It is stochastic: animal behaviour, the outcomes of physical actions, and the environment itself are uncertain and cannot be predicted deterministically. It is sequential: current actions have downstream consequences — a missed feeding or walk affects later health and behaviour — so the robot cannot treat each decision in isolation. It is dynamic: the world changes while the robot deliberates, since pets, people, and outdoor traffic move independently. It is continuous in both state and action, involving smooth motion, manipulation, and time. Finally, it is multi-agent, containing pets, the owner, other people, and potentially other animals, some of which (such as other dogs on a walk) are best modelled as unpredictable agents. This classification — partially observable, stochastic, sequential, dynamic, continuous, and multi-agent — places RPawsitive Care among the most demanding categories of agent environments and motivates the reactive, behaviour-based control architecture.
+
+\subsection{Human-Robot Interaction}
+
+Although the robot acts autonomously, the owner remains the supervisor and decision-maker, so interaction is designed around supervisory control and transparency. The owner configures schedules, feeding plans, and walking routes through a mobile application, receives notifications and health alerts, and can view live or recorded video to remain in the loop. In the home, the robot communicates its state through simple, legible cues — light, sound, and an on-board display — so that both humans and pets can anticipate its actions. Because key user groups include older adults and people with disabilities, the interaction must be accessible, supporting alternatives to fine-grained manual control and accommodating age-related declines in vision, hearing, or cognition. Critically, the robot escalates rather than acts on consequential matters: when it detects a possible health problem, it informs the owner and, where appropriate, a veterinarian instead of making a medical decision on its own.
+
+\subsection{Artificial Intelligence Methods and Integration}
+
+The proposed perception pipeline first detects and tracks animals, then estimates observable posture and activity over time. Markerless pose-estimation methods such as DeepLabCut demonstrate a basis for tracking animal body landmarks~\cite{deeplabcut}. Their use here would require labelled cat and dog recordings covering different breeds, lighting, occlusion, and camera viewpoints. Pose estimates provide behavioural features; they are not direct evidence of pain or illness. Low-confidence observations should be marked as uncertain and should not trigger physical intervention.
+
+Localization combines camera or depth information with wheel odometry and inertial measurements. ORB-SLAM3 provides an example of visual and visual-inertial mapping methods~\cite{orbslam}; deployment on this platform would still require testing around moving animals and changing household layouts. A global planner selects a route to a task location, while a local controller responds to newly detected obstacles. Loss of localization causes a controlled stop and a recovery request.
+
+For monitoring, the system maintains per-animal summaries of intake and activity. A baseline model flags persistent deviations, with thresholds selected using labelled validation data and owner feedback. Alerts include timestamps, supporting observations, and confidence information. The behaviour controller then applies the arbitration rules described above. Any optional language interface maps user requests to a restricted set of validated commands; it cannot bypass actuator limits or medical restrictions. Safety decisions must remain available locally rather than depending on a cloud service.
+
+\section{Feasibility}
+
+This section assesses whether RPawsitive Care can be built with current or near-term technology. An assessment of its required technologies, primary technical challenges, and an outline of future improvements will be made.
+
+\subsection{Current Technology Readiness}
+
+Several component functions have precedents in existing products or research platforms. Sony's aibo demonstrates interactive companion-robot features~\cite{sony}, while domestic manipulators provide a starting point for mobile assistance. However, interaction with people does not establish safe care of living animals. For this project, component availability is evidence of implementation options, not proof of integrated system readiness.
+
+Toyota's Human Support Robot illustrates the combination of a mobile base, perception, and object handling for assistance in domestic environments~\cite{toyota}. RPawsitive Care would adapt this general architecture to bowls, supplies, and cleaning tools. Animal motion, hygiene constraints, and pet-specific task failures introduce additional requirements that must be validated separately.
+
+The main feasibility question is whether these components can operate together reliably within the proposed scope. No prototype, integrated benchmark, or field trial is reported here. Claims about task success, animal acceptance, battery endurance, or affordability therefore remain hypotheses for subsequent development.
+
+\subsection{Technical Challenges}
+
+Animal behaviour recognition is a major technical challenge because activity varies with the individual animal, breed, age, and surroundings. A pose-tracking method can provide useful measurements~\cite{deeplabcut}, but interpreting those measurements as health indicators requires separate veterinary validation. Occlusion, multiple animals, reflective surfaces, and changing illumination also affect perception and navigation. Mechanical challenges include preventing pinch points, controlling contact forces, separating food handling from waste handling, and maintaining stable motion during unexpected leash loads. The first implementation should support observation and advisory alerts while leaving clinical interpretation to qualified professionals.
+
+\subsection{Economic Challenges}
+
+In addition to technical feasibility, economic feasibility of this product must be considered. The proposed system combines robotic automation, health-monitoring capabilities, and potential artificial intelligence in one platform. Components such as cameras, LiDAR, wireless communication modules, and high-capacity batteries mean that a significant level of capital expenditure is required for the development and manufacturing. As a result, the initial purchase price of the product may be expensive for the everyday pet-owner, especially when compared to products which have standalone features, such as self-cleaning litterbox.
+
+Another consideration is the ongoing operational costs. Over the robot’s lifetime, maintenance costs, battery replacements, cloud services, and ongoing repairs may raise the total cost of the product over the lifetime of ownership. As a result, the value of the products offerings may not immediately outweigh the financial cost of purchasing and owning the product.
+
+A cost estimate should include the bill of materials, assembly, maintenance, consumables, battery replacement, and any network services. No price or payback period can be justified before those quantities and the expected service life are established.
+
+\subsection{Prototype Scope and Evaluation Plan}
+
+Development should begin with an indoor wheeled prototype for feeding, water provision, monitoring, and restricted cleaning. Stairs, public-road walking, and livestock care would be excluded from initial trials. A later phase could evaluate supervised operation in an enclosed outdoor area. Wheel--leg mobility and unsupervised dog walking should be considered only after the simpler configuration demonstrates reliable operation.
+
+Bench tests should measure dispensing error, spill detection, task completion, emergency-stop response, and recovery from sensor or network failures. Navigation tests should record collision and near-miss events, localization failures, and successful returns to a safe location. Perception evaluation should use test animals and households excluded from training; precision, recall, and false alerts per animal-day should be reported alongside results under occlusion and poor lighting. These measures are proposed evaluation criteria, not measured results.
+
+After bench and simulated-animal testing, supervised studies with owner consent and appropriate animal-welfare review should assess voluntary animal engagement, avoidance or distress behaviour, caregiver workload, and interface accessibility. Comparison with the owner's usual routine would help determine whether the system provides practical benefit. Quantitative acceptance thresholds should be set with relevant engineering and veterinary input before trials, rather than chosen after observing the results.
+
+\section{Roboethics and Safety}
+
+\subsection{Ethical Considerations}
+
+RPawsitive Care is a tool that is designed to automate routine pet-related tasks such as feeding, cleaning, playing and health monitoring. While the primary goal of this robot is to reduce the burden of pet ownership, its design raises important ethical considerations. Such concerns include privacy, autonomy, and the premise of the human-animal relationship. Since RPawsitive Care is a tool that utilizes cameras, microphones, and environmental sensors as the base design to enable daily monitoring of pets, detect behavioural changes, and perform tasks autonomously, this introduces the requirement to gather potentially sensitive information within the user’s home. As a result, it is important that ethical deployment of this tool pays heed to transparency surrounding how data is collected, processed, stored, and who could potentially have access. It is important for users to retain control over their data and for the tool to obtain informed consent for monitoring functions.
+
+Automation could reduce direct human involvement in pet care. The ASPCA's position on the human--companion-animal bond emphasizes that both people and animals can benefit from an appropriately maintained relationship~\cite{aspca}. Evidence of potential social and stress-related benefits also supports preserving opportunities for human--animal interaction~\cite{beetz}. Kranzberg's account of technology emphasizes that its effects depend on social context~\cite{kranzberg}. Applied here, automation should free owners from selected routine tasks while retaining time for direct care and interaction. This design objective is consistent with Pasquale's argument for technology that supports human expertise~\cite{pasquale}.
+
+\subsection{Vulnerable Users}
+
+Older adults and people with disabilities are important intended user groups because some pet-care tasks may be physically demanding. Human--animal interaction can support social engagement in some settings~\cite{beetz}, but the benefits of this particular robot have not been established. Evaluation should therefore include users with different mobility, sensory, and cognitive needs, and should examine both usefulness and the additional burden of maintaining the device.
+
+While the introduction of robotics in companion animals can help augment the way these populations interact with companion animals, vulnerable users must be considered throughout the design process as they may interact with the robot differently than the general population. Unique interaction mechanisms must be considered, including how older populations may be experiencing age-related declines such as changes in vision, hearing, memory, or cognition. Likewise, individuals with disabilities may require alternate methods of interaction with robots and must incorporate an element of accessibility. Therefore, to maintain highest ethical standards, RPawsitive must incorporate these learnings into design principles, and accommodate users with diverse needs. Accessible controls, clear alerts, and a reachable physical stop button should be assessed with the intended users rather than assumed to be universally usable.
+
+\subsection{Responsible Robot Behaviour}
+
+As an autonomous system responsible for the care of living animals, there are a few guiding principles that RPawsitive must operate according to principles of safety, transparency, accountability, and animal welfare. These design commitments draw on Pasquale's discussion of human expertise and accountability~\cite{pasquale}.
+
+Firstly, the design is intended to complement humans, rather than replace human caregiving. Accordingly, routine pet-care tasks will be under the scope of the robot’s functionalities, while important decisions regarding the health and welfare of the animal will remain with the owner. For example, the robot may help detect concerns with abnormal behaviour, signs of illness, and missed feedings, however, the robot should notify the owner and medical professional immediately of concerns, rather than actioning any important medical decisions. This guiding principle is in line with Pasquale’s first law, that Robotic systems should complement professionals, not replace them.
+
+Lastly, the robot should not counterfeit humanity by misleading the user or any interactors into believing it possesses human-level understanding, emotion, or consciousness. Although RPawsitive will be designed for usability, which may include conversational interfaces, it should be clear that the system is artificial. This follows in line with Pasquale’s second law.
+
+The development of such a system will demonstrate that integration of robotics into animal care requires more than technical adeptness but will require more thought and attention to ethical considerations that must be addressed. Guided by basic Roboethics principles, RPawsitive Care is designed to complement rather than replace human caregivers, promote transparency, and maintain high standards of animal welfare.
+
+\subsection{Operational Safety and Data Protection}
+
+Routine motion should use conservative speed and force limits established through testing. An accessible physical emergency stop, guarded mechanisms, separate clean and waste-contact tools, and interlocks around occupied litter areas are proposed safeguards. Leash operation requires load monitoring and a validated response to sudden pulls; public-road operation is excluded from the initial prototype. Failed sensing or ambiguous animal behaviour should cause the robot to stop, preserve a short diagnostic record, and notify the owner.
+
+Camera and microphone processing should occur on the device where practicable. Stored recordings require explicit user controls for retention, deletion, and sharing; remote access requires authentication and encrypted communication. The owner should be able to disable nonessential recording without disabling basic safety functions. Logs should identify commands, automated actions, faults, and overrides so incidents can be reviewed. These measures are design requirements and would need implementation and security testing.
+
+\subsection{Maintaining Human Responsibility}
+
+RPawsitive Care is designed to assist pet owners, not replace them, in line with the First New Law of Robotics. While the system can monitor pets, identify potential concerns, and provide recommendations, the control of decision making regarding the pet’s health, training, and social care, must remain under human control. This human-in-the-loop approach preserves accountability and helps maintain the human-animal bond that is central to the benefits of pet ownership.
+
+\balance
+\section{Conclusions}
+
+This report presents RPawsitive Care as a conceptual mobile robot for supporting routine pet care. The design combines animal-aware perception, a mobile manipulator, feeding and water modules, cleaning tools, and a behaviour-based controller. The intelligent-agent analysis identifies a partially observable, stochastic, dynamic, and multi-agent environment, motivating continuous sensing, explicit task preconditions, and safety-prioritized behaviour arbitration.
+
+The most credible starting point is a restricted indoor prototype that assists with feeding, hydration, monitoring, and selected cleaning tasks. Existing robotics and machine-learning methods provide useful building blocks, but they do not establish the reliability of the proposed integrated system. Autonomous outdoor walking, medical interpretation, and complex physical interactions remain substantial challenges. No experimental performance, economic savings, or animal-welfare improvement is claimed by this conceptual study.
+
+The next step is to implement the limited prototype and evaluate it through bench tests followed by carefully supervised trials. Progress should be judged by reliable task execution, safe failure handling, animal acceptance, caregiver workload, and accessibility. Owners retain responsibility for care decisions, and veterinary professionals retain responsibility for clinical interpretation and treatment. Under these constraints, RPawsitive Care offers a direction for assistive robotics that supports continued human care of companion animals.
+
+\begin{thebibliography}{10}
+
+\bibitem{beetz} A. Beetz, K. Uvnäs-Moberg, H. Julius, and K. Kotrschal, ``Psychosocial and psychophysiological effects of human-animal interactions: The possible role of oxytocin,'' \emph{Frontiers in Psychology}, vol. 3, Art. no. 234, 2012, doi: 10.3389/fpsyg.2012.00234.
+
+\bibitem{sony} Sony Corporation, ``Entertainment robot `aibo' announced,'' Nov. 1, 2017. [Online]. Available: \url{https://www.sony.com/en/SonyInfo/News/Press/201711/17-105E/}
+
+\bibitem{toyota} Toyota Motor Corporation, ``Toyota shifts home helper robot R\&D into high gear with new developer community and upgraded prototype,'' Jul. 16, 2015. [Online]. Available: \url{https://global.toyota/en/detail/8709541}
+
+\bibitem{brooks} R. A. Brooks, ``A robust layered control system for a mobile robot,'' \emph{IEEE Journal of Robotics and Automation}, vol. 2, no. 1, pp. 14--23, 1986, doi: 10.1109/JRA.1986.1087032.
+
+\bibitem{aima} S. Russell and P. Norvig, \emph{Artificial Intelligence: A Modern Approach}, 4th ed. Pearson, 2021, ch. 2.
+
+\bibitem{deeplabcut} A. Mathis \emph{et al.}, ``DeepLabCut: Markerless pose estimation of user-defined body parts with deep learning,'' \emph{Nature Neuroscience}, vol. 21, pp. 1281--1289, 2018, doi: 10.1038/s41593-018-0209-y.
+
+\bibitem{orbslam} C. Campos, R. Elvira, J. J. Gómez Rodríguez, J. M. M. Montiel, and J. D. Tardós, ``ORB-SLAM3: An accurate open-source library for visual, visual-inertial and multi-map SLAM,'' arXiv:2007.11898, 2020. [Online]. Available: \url{https://arxiv.org/abs/2007.11898}
+
+\bibitem{aspca} American Society for the Prevention of Cruelty to Animals, ``Human/companion animal bond.'' Accessed: Oct. 24, 2026. [Online]. Available: \url{https://www.aspca.org/about-us/aspca-policy-and-position-statements/humancompanion-animal-bond}
+
+\bibitem{kranzberg} M. Kranzberg, ``Technology and history: `Kranzberg's laws','' \emph{Technology and Culture}, vol. 27, no. 3, pp. 544--560, 1986, doi: 10.2307/3105385.
+
+\bibitem{pasquale} F. Pasquale, \emph{New Laws of Robotics: Defending Human Expertise in the Age of AI}. Cambridge, MA, USA: Belknap Press of Harvard University Press, 2020.
+\end{thebibliography}
+\end{document}
